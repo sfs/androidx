@@ -24,6 +24,7 @@ import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContextImpl
 import org.jetbrains.kotlin.backend.common.ir.BuiltinSymbolsBase
 import org.jetbrains.kotlin.backend.common.serialization.DescriptorByIdSignatureFinderImpl
+import org.jetbrains.kotlin.backend.common.serialization.linkerissues.checkNoUnboundSymbols
 import org.jetbrains.kotlin.backend.jvm.JvmGeneratorExtensionsImpl
 import org.jetbrains.kotlin.backend.jvm.JvmIrTypeSystemContext
 import org.jetbrains.kotlin.backend.jvm.serialization.JvmIdSignatureDescriptor
@@ -381,7 +382,7 @@ abstract class AbstractIrTransformTest : AbstractCodegenTest() {
         generatorContext: GeneratorContext,
         source: DeserializedContainerSource
     ): IrClass? {
-        val jvmPackagePartSource = source.safeAs<JvmPackagePartSource>() ?: return null
+        val jvmPackagePartSource = source as? JvmPackagePartSource ?: return null
         val facadeName = jvmPackagePartSource.facadeClassName ?: jvmPackagePartSource.className
         return generatorContext.irFactory.buildClass {
             origin = IrDeclarationOrigin.FILE_CLASS
@@ -413,12 +414,13 @@ abstract class AbstractIrTransformTest : AbstractCodegenTest() {
 
             val mangler = JvmDescriptorMangler(null)
 
-            val psi2ir = Psi2IrTranslator(
-                environment.configuration.languageVersionSettings,
-                Psi2IrConfiguration(ignoreErrors = false)
-            )
             val messageLogger = environment.configuration[IrMessageLogger.IR_MESSAGE_LOGGER]
                 ?: IrMessageLogger.None
+            val psi2ir = Psi2IrTranslator(
+                environment.configuration.languageVersionSettings,
+                Psi2IrConfiguration(ignoreErrors = false),
+                messageLogger::checkNoUnboundSymbols
+            )
             val symbolTable = SymbolTable(
                 JvmIdSignatureDescriptor(mangler),
                 IrFactoryImpl

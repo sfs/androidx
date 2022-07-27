@@ -25,6 +25,15 @@ plugins {
     id("AndroidXComposePlugin")
 }
 
+allprojects {
+    repositories {
+        mavenLocal()
+        maven {
+            url "https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev/"
+        }
+    }
+}
+
 AndroidXComposePlugin.applyAndConfigureKotlinPlugin(project)
 
 dependencies {

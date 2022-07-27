@@ -22,6 +22,15 @@ plugins {
     id("com.github.johnrengelman.shadow")
 }
 
+allprojects {
+    repositories {
+        mavenLocal()
+        maven {
+            url "https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev/"
+        }
+    }
+}
+
 dependencies {
     compileOnly(libs.androidLintApi)
     compileOnly(libs.kotlinStdlib)
