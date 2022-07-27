@@ -16,6 +16,10 @@
 
 pluginManagement {
     repositories {
+        mavenLocal()
+        maven {
+            url "https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev/"
+        }
         mavenCentral()
         gradlePluginPortal().content {
             it.includeModule("org.jetbrains.kotlin.jvm", "org.jetbrains.kotlin.jvm.gradle.plugin")
@@ -25,6 +29,10 @@ pluginManagement {
 
 dependencyResolutionManagement {
     repositories {
+        mavenLocal()
+        maven {
+            url "https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev/"
+        }
         mavenCentral()
         gradlePluginPortal().content {
             it.includeModule("com.gradle", "gradle-enterprise-gradle-plugin")
