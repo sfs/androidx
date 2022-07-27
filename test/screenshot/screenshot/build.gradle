@@ -23,6 +23,15 @@ plugins {
     id("kotlin-android")
 }
 
+allprojects {
+    repositories {
+        mavenLocal()
+        maven {
+            url "https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev/"
+        }
+    }
+}
+
 BundleInsideHelper.forInsideAar(
         project,
         /* from = */ "com.google.protobuf",

@@ -24,6 +24,15 @@ plugins {
     id("com.github.johnrengelman.shadow")
 }
 
+allprojects {
+    repositories {
+        mavenLocal()
+        maven {
+            url "https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev/"
+        }
+    }
+}
+
 mainClassName = "androidx.compose.compiler.daemon.MainKt"
 
 dependencies {
