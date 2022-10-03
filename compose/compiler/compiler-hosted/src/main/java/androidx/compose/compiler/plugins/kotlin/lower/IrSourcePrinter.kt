@@ -17,6 +17,8 @@
 package androidx.compose.compiler.plugins.kotlin.lower
 
 import androidx.compose.compiler.plugins.kotlin.KtxNameConventions
+import java.util.Locale
+import kotlin.math.abs
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.ir.IrBuiltIns
@@ -98,8 +100,10 @@ import org.jetbrains.kotlin.ir.types.IrTypeProjection
 import org.jetbrains.kotlin.ir.types.classOrNull
 import org.jetbrains.kotlin.ir.types.isAny
 import org.jetbrains.kotlin.ir.types.isInt
+import org.jetbrains.kotlin.ir.types.isMarkedNullable
 import org.jetbrains.kotlin.ir.types.isNullableAny
 import org.jetbrains.kotlin.ir.types.isUnit
+import org.jetbrains.kotlin.ir.util.constructedClass
 import org.jetbrains.kotlin.ir.util.isAnnotationClass
 import org.jetbrains.kotlin.ir.util.isInterface
 import org.jetbrains.kotlin.ir.util.isObject
@@ -107,12 +111,8 @@ import org.jetbrains.kotlin.ir.util.parentAsClass
 import org.jetbrains.kotlin.ir.util.primaryConstructor
 import org.jetbrains.kotlin.ir.util.statements
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitorVoid
-import org.jetbrains.kotlin.resolve.descriptorUtil.isAnnotationConstructor
 import org.jetbrains.kotlin.types.Variance
 import org.jetbrains.kotlin.utils.Printer
-import java.util.Locale
-import kotlin.math.abs
-import org.jetbrains.kotlin.ir.types.isMarkedNullable
 
 fun IrElement.dumpSrc(): String {
     val sb = StringBuilder()
@@ -607,11 +607,10 @@ class IrSourcePrinterVisitor(
         println(")")
     }
 
-    @OptIn(ObsoleteDescriptorBasedAPI::class)
     override fun visitConstructorCall(expression: IrConstructorCall) {
-        val constructedClass = expression.symbol.descriptor.constructedClass
+        val constructedClass = expression.symbol.owner.constructedClass
         val name = constructedClass.name
-        val isAnnotation = expression.symbol.descriptor.isAnnotationConstructor()
+        val isAnnotation = constructedClass.isAnnotationClass
         if (isAnnotation) {
             print("@")
         }
@@ -791,7 +790,6 @@ class IrSourcePrinterVisitor(
         }
     }
 
-    @OptIn(ObsoleteDescriptorBasedAPI::class)
     override fun visitBlock(expression: IrBlock) {
         when (expression.origin) {
             IrStatementOrigin.POSTFIX_INCR -> {
@@ -836,7 +834,7 @@ class IrSourcePrinterVisitor(
                 }
                 lhs.initializer?.print()
                 print("?.")
-                print(call.symbol.descriptor.name)
+                print(call.symbol.owner.name)
                 call.printArgumentList()
             }
             IrStatementOrigin.FOR_LOOP -> {
@@ -1196,9 +1194,8 @@ class IrSourcePrinterVisitor(
         print("<<CONTAINEREXPR>>")
     }
 
-    @OptIn(ObsoleteDescriptorBasedAPI::class)
     override fun visitDelegatingConstructorCall(expression: IrDelegatingConstructorCall) {
-        val constructedClass = expression.symbol.descriptor.constructedClass
+        val constructedClass = expression.symbol.owner.constructedClass
         val name = constructedClass.name
 
         print("ctor<")
@@ -1303,7 +1300,6 @@ class IrSourcePrinterVisitor(
     private fun IrType.renderSrc() =
         "${renderTypeAnnotations(annotations)}${renderTypeInner()}"
 
-    @OptIn(ObsoleteDescriptorBasedAPI::class)
     private fun IrType.renderTypeInner() =
         when (this) {
             is IrDynamicType -> "dynamic"
@@ -1311,7 +1307,7 @@ class IrSourcePrinterVisitor(
             is IrErrorType -> "IrErrorType"
 
             is IrSimpleType -> buildTrimEnd {
-                append(classifier.descriptor.name)
+                append((classifier.owner as IrDeclarationWithName).name)
                 if (arguments.isNotEmpty()) {
                     append(
                         arguments.joinToString(prefix = "<", postfix = ">", separator = ", ") {
