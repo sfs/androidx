@@ -17,6 +17,23 @@
 package androidx.compose.compiler.plugins.kotlin
 
 class SanityCheckCodegenTests : AbstractCodegenTest() {
+    // Test case for KT-54226
+    fun testTypeResolutionInterceptorRegression() = ensureSetup {
+        testCompile(
+            """
+                fun main() {
+                    factory<String> @CustomAnnotation {
+                        "Hello"
+                    }
+                }
+
+                @Target(AnnotationTarget.FUNCTION)
+                annotation class CustomAnnotation()
+
+                inline fun <reified T> factory(noinline definition: () -> T) {}
+            """.trimIndent()
+        )
+    }
 
     fun testCallAbstractSuperWithTypeParameters() = ensureSetup {
         testCompile(
