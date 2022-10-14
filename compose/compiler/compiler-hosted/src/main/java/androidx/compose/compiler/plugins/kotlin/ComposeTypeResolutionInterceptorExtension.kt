@@ -20,13 +20,17 @@ import androidx.compose.compiler.plugins.kotlin.analysis.ComposeWritableSlices
 import androidx.compose.compiler.plugins.kotlin.analysis.ComposeWritableSlices.INFERRED_COMPOSABLE_DESCRIPTOR
 import org.jetbrains.kotlin.descriptors.impl.AnonymousFunctionDescriptor
 import org.jetbrains.kotlin.extensions.internal.TypeResolutionInterceptorExtension
+import org.jetbrains.kotlin.psi.KtAnnotatedExpression
 import org.jetbrains.kotlin.psi.KtElement
+import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.psiUtil.getAnnotationEntries
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
+import org.jetbrains.kotlin.resolve.inline.InlineUtil
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.TypeUtils
 import org.jetbrains.kotlin.types.expressions.ExpressionTypingContext
+import org.jetbrains.kotlin.types.typeUtil.isAnyOrNullableAny
 
 /**
  * If a lambda is marked as `@Composable`, then the inferred type should become `@Composable`
@@ -62,6 +66,38 @@ open class ComposeTypeResolutionInterceptorExtension : TypeResolutionInterceptor
         if (resultType === TypeUtils.NO_EXPECTED_TYPE) return resultType
         if (resultType === TypeUtils.UNIT_EXPECTED_TYPE) return resultType
         if (element !is KtLambdaExpression) return resultType
+
+        // Check whether we are producing a composable lambda in a non-composable context. If so, that's
+        // an error which `ComposableCallChecker` would catch, but there are cases (postponed lambda arguments)
+        // where it just doesn't run. That's why we repeat the check here.
+        //
+        // Copied from ComposableCallChecker ... except this probably won't work in all cases,
+        // because we don't have the "typeWithSmartCasts".
+        //
+        // TODO: Deduplicate and figure out if there's anything that could go wrong here with smart casts.
+        val expectedType = context.expectedType
+        if (expectedType !== TypeUtils.NO_EXPECTED_TYPE && expectedType !== TypeUtils.UNIT_EXPECTED_TYPE && !expectedType.isAnyOrNullableAny()) {
+            if (element.getAnnotationEntries().hasComposableAnnotation(context.trace.bindingContext) && !context.hasComposableExpectedType(element)) {
+                val isInlineable = InlineUtil.isInlinedArgument(
+                    element.functionLiteral,
+                    context.trace.bindingContext,
+                    true
+                )
+                if (!isInlineable) {
+                    val reportOn =
+                        if (element.parent is KtAnnotatedExpression)
+                            element.parent as KtExpression
+                        else element
+                    context.trace.report(
+                        ComposeErrors.TYPE_MISMATCH.on(
+                            reportOn,
+                            expectedType,
+                            resultType
+                        )
+                    )
+                }
+            }
+        }
 
         if (
             element.getAnnotationEntries().hasComposableAnnotation(context.trace.bindingContext) ||

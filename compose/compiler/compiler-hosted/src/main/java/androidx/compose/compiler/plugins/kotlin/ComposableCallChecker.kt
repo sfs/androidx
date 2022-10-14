@@ -337,6 +337,8 @@ open class ComposableCallChecker :
                 if (isInlineable) return
 
                 if (!expectedComposable && isComposable) {
+                    // If `INFERRED_COMPOSABLE_DESCRIPTOR` is set then we already reported this error in
+                    // ComposeTypeResolutionInterceptorExtension
                     val inferred = c.trace.bindingContext[
                         ComposeWritableSlices.INFERRED_COMPOSABLE_DESCRIPTOR,
                         descriptor
