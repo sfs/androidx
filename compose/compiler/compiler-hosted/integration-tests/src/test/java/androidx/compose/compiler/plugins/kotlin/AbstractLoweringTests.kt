@@ -23,7 +23,6 @@ import org.robolectric.RuntimeEnvironment
 import java.net.URLClassLoader
 
 abstract class AbstractLoweringTests : AbstractCodegenTest() {
-
     fun codegen(text: String, dumpClasses: Boolean = false) {
         codegenNoImports(
             """
