@@ -27,8 +27,11 @@ import org.jetbrains.kotlin.psi.KtPropertyAccessor
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
 
-class ScopeComposabilityTests : AbstractCodegenTest() {
+@RunWith(JUnit4::class)
+class ScopeComposabilityTests : AbstractCodegenTest(useFir = false) {
     @Test
     fun testNormalFunctions() = assertComposability(
         """

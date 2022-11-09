@@ -22,7 +22,7 @@ import org.jetbrains.kotlin.checkers.DiagnosedRange
 import org.jetbrains.kotlin.checkers.utils.CheckerTestUtil
 import org.junit.Assert
 
-abstract class AbstractComposeDiagnosticsTest : AbstractCompilerTest() {
+abstract class AbstractComposeDiagnosticsTest(useFir: Boolean) : AbstractCompilerTest(useFir) {
     private class DiagnosticTestException(message: String) : Exception(message)
 
     protected fun check(expectedText: String, ignoreParseErrors: Boolean = false) {

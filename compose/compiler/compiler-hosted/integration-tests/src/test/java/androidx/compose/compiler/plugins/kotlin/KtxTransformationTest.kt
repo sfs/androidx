@@ -18,7 +18,7 @@ package androidx.compose.compiler.plugins.kotlin
 
 import org.junit.Test
 
-class KtxTransformationTest : AbstractCodegenTest() {
+class KtxTransformationTest(useFir: Boolean) : AbstractCodegenTest(useFir) {
 //    b/179279455
 //    @Test
 //    fun testObserveLowering() {

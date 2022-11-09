@@ -26,7 +26,7 @@ import org.junit.Test
  * More complex cases tested in other IrTransform tests that use
  * the [TruncateTracingInfoMode.KEEP_INFO_STRING].
  */
-class TraceInformationTest : AbstractIrTransformTest() {
+class TraceInformationTest(useFir: Boolean) : AbstractIrTransformTest(useFir) {
     @Test
     fun testBasicComposableFunctions() = verifyComposeIrTransform(
         """

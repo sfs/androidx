@@ -30,7 +30,7 @@ import org.jetbrains.kotlin.ir.util.statements
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
-class ClassStabilityTransformTests : AbstractIrTransformTest() {
+class ClassStabilityTransformTests(useFir: Boolean) : AbstractIrTransformTest(useFir) {
     @Test
     fun testEmptyClassIsStable() = assertStability(
         "class Foo",

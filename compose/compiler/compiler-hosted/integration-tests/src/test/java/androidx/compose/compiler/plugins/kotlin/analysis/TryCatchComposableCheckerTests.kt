@@ -17,13 +17,18 @@
 package androidx.compose.compiler.plugins.kotlin.analysis
 
 import androidx.compose.compiler.plugins.kotlin.AbstractComposeDiagnosticsTest
+import org.junit.Assume
 import org.junit.Test
 
 /**
  * We're strongly considering supporting try-catch-finally blocks in the future.
  * If/when we do support them, these tests should be deleted.
  */
-class TryCatchComposableCheckerTests : AbstractComposeDiagnosticsTest() {
+class TryCatchComposableCheckerTests(useFir: Boolean) : AbstractComposeDiagnosticsTest(useFir) {
+    init {
+        Assume.assumeFalse(useFir)
+    }
+
     @Test
     fun testTryCatchReporting001() {
         check(

@@ -19,7 +19,7 @@ package androidx.compose.compiler.plugins.kotlin
 import org.junit.Test
 
 @Suppress("SpellCheckingInspection") // Expected strings can have partial words
-class TargetAnnotationsTransformTests : AbstractIrTransformTest() {
+class TargetAnnotationsTransformTests(useFir: Boolean) : AbstractIrTransformTest(useFir) {
     @Test
     fun testInferUIFromCall() = verify(
         """

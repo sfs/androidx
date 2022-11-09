@@ -17,9 +17,14 @@
 package androidx.compose.compiler.plugins.kotlin.analysis
 
 import androidx.compose.compiler.plugins.kotlin.AbstractComposeDiagnosticsTest
+import org.junit.Assume
 import org.junit.Test
 
-class ComposableTargetCheckerTests : AbstractComposeDiagnosticsTest() {
+class ComposableTargetCheckerTests(useFir: Boolean) : AbstractComposeDiagnosticsTest(useFir) {
+    init {
+        Assume.assumeFalse(useFir)
+    }
+
     @Test
     fun testExplicitTargetAnnotations() = check(
         """

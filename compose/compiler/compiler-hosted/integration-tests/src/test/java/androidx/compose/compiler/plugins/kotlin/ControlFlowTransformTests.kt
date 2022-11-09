@@ -19,7 +19,7 @@ package androidx.compose.compiler.plugins.kotlin
 import org.intellij.lang.annotations.Language
 import org.junit.Test
 
-class ControlFlowTransformTests : AbstractControlFlowTransformTests() {
+class ControlFlowTransformTests(useFir: Boolean) : AbstractControlFlowTransformTests(useFir) {
     @Test
     fun testIfNonComposable(): Unit = controlFlow(
         """

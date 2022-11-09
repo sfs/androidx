@@ -25,8 +25,11 @@ import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 import org.jetbrains.kotlin.resolve.calls.util.getResolvedCall
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
 
-class ComposeCallResolverTests : AbstractCodegenTest() {
+@RunWith(JUnit4::class)
+class ComposeCallResolverTests : AbstractCodegenTest(useFir = false) {
     @Test
     fun testProperties() = assertInterceptions(
         """

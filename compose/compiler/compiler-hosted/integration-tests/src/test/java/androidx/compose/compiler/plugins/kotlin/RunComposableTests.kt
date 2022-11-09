@@ -34,8 +34,12 @@ import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.junit.Test
 import java.net.URLClassLoader
 import org.junit.Assert.assertEquals
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
 
-class RunComposableTests : AbstractCodegenTest() {
+// FIR does not support multiplatform code yet
+@RunWith(JUnit4::class)
+class RunComposableTests() : AbstractCodegenTest(useFir = false) {
     override fun CompilerConfiguration.updateConfiguration() {
         setupLanguageVersionSettings(K2JVMCompilerArguments().apply {
             // enabling multiPlatform to use expect/actual declarations

@@ -17,9 +17,14 @@
 package androidx.compose.compiler.plugins.kotlin.analysis
 
 import androidx.compose.compiler.plugins.kotlin.AbstractComposeDiagnosticsTest
+import org.junit.Assume
 import org.junit.Test
 
-class ComposableDeclarationCheckerTests : AbstractComposeDiagnosticsTest() {
+class ComposableDeclarationCheckerTests(useFir: Boolean) : AbstractComposeDiagnosticsTest(useFir) {
+    init {
+        Assume.assumeFalse(useFir)
+    }
+
     @Test
     fun testPropertyWithInitializer() {
         check(

@@ -26,7 +26,7 @@ import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 import org.jetbrains.kotlin.ir.util.DeepCopySymbolRemapper
 import org.junit.Assert.assertEquals
 
-abstract class AbstractLiveLiteralTransformTests : AbstractIrTransformTest() {
+abstract class AbstractLiveLiteralTransformTests(useFir: Boolean) : AbstractIrTransformTest(useFir) {
     private fun computeKeys(files: List<SourceFile>): List<String> {
         var builtKeys = mutableSetOf<String>()
         compileToIr(

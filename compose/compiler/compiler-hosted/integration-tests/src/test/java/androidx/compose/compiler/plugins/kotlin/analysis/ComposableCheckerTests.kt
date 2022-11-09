@@ -1,9 +1,14 @@
 package androidx.compose.compiler.plugins.kotlin.analysis
 
 import androidx.compose.compiler.plugins.kotlin.AbstractComposeDiagnosticsTest
+import org.junit.Assume
 import org.junit.Test
 
-class ComposableCheckerTests : AbstractComposeDiagnosticsTest() {
+class ComposableCheckerTests(useFir: Boolean) : AbstractComposeDiagnosticsTest(useFir) {
+    init {
+        Assume.assumeFalse(useFir)
+    }
+
     @Test
     fun testCfromNC() = check(
         """

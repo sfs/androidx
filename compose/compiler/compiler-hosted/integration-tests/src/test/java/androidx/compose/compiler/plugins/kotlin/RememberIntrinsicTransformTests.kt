@@ -19,7 +19,7 @@ package androidx.compose.compiler.plugins.kotlin
 import org.intellij.lang.annotations.Language
 import org.junit.Test
 
-class RememberIntrinsicTransformTests : AbstractIrTransformTest() {
+class RememberIntrinsicTransformTests(useFir: Boolean) : AbstractIrTransformTest(useFir) {
     private fun comparisonPropagation(
         @Language("kotlin")
         unchecked: String,
