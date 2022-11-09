@@ -123,7 +123,7 @@ abstract class KotlinCompilerFacade(val environment: KotlinCoreEnvironment) {
             environment.project.registerExtensions(configuration)
 
             return if (configuration.getBoolean(CommonConfigurationKeys.USE_FIR)) {
-                error("FIR unsupported")
+                K2CompilerFacade(environment)
             } else {
                 K1CompilerFacade(environment)
             }
