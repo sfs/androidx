@@ -34,6 +34,7 @@ import org.jetbrains.kotlin.config.JVMConfigurationKeys
 import org.jetbrains.kotlin.config.KotlinCompilerVersion
 import org.jetbrains.kotlin.extensions.StorageComponentContainerContributor
 import org.jetbrains.kotlin.extensions.internal.TypeResolutionInterceptor
+import org.jetbrains.kotlin.fir.extensions.FirExtensionRegistrarAdapter
 import org.jetbrains.kotlin.serialization.DescriptorSerializerPlugin
 
 object ComposeConfiguration {
@@ -205,6 +206,9 @@ class ComposeComponentRegistrar : ComponentRegistrar {
         }
     }
 
+    override val supportsK2: Boolean
+        get() = true
+
     companion object {
         fun checkCompilerVersion(configuration: CompilerConfiguration): Boolean {
             val KOTLIN_VERSION_EXPECTATION = "1.8.255-SNAPSHOT"
@@ -290,6 +294,10 @@ class ComposeComponentRegistrar : ComponentRegistrar {
             DescriptorSerializerPlugin.registerExtension(
                 project,
                 ClassStabilityFieldSerializationPlugin()
+            )
+            FirExtensionRegistrarAdapter.registerExtension(
+                project,
+                ComposeFirExtensionRegistrar()
             )
         }
 
