@@ -55,7 +55,6 @@ import org.jetbrains.kotlin.ir.types.isUnit
 import org.jetbrains.kotlin.ir.types.makeNotNull
 import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.findAnnotation
-import org.jetbrains.kotlin.ir.util.fqNameForIrSerialization
 import org.jetbrains.kotlin.ir.util.fqNameWhenAvailable
 import org.jetbrains.kotlin.ir.util.getInlineClassUnderlyingType
 import org.jetbrains.kotlin.ir.util.hasAnnotation
@@ -65,6 +64,7 @@ import org.jetbrains.kotlin.ir.util.isFinalClass
 import org.jetbrains.kotlin.ir.util.isFunctionOrKFunction
 import org.jetbrains.kotlin.ir.util.isInterface
 import org.jetbrains.kotlin.ir.util.isTypeParameter
+import org.jetbrains.kotlin.ir.util.kotlinFqName
 
 sealed class Stability {
     // class Foo(val bar: Int)
@@ -253,13 +253,13 @@ private val stableBuiltinTypes = mapOf(
 
 // TODO: buildList, buildMap, buildSet, etc.
 private val stableProducingFunctions = mapOf(
-    "kotlin.collections.CollectionsKt.emptyList" to 0,
-    "kotlin.collections.CollectionsKt.listOf" to 0b1,
-    "kotlin.collections.CollectionsKt.listOfNotNull" to 0b1,
-    "kotlin.collections.MapsKt.mapOf" to 0b11,
-    "kotlin.collections.MapsKt.emptyMap" to 0,
-    "kotlin.collections.SetsKt.setOf" to 0b1,
-    "kotlin.collections.SetsKt.emptySet" to 0,
+    "kotlin.collections.emptyList" to 0,
+    "kotlin.collections.listOf" to 0b1,
+    "kotlin.collections.listOfNotNull" to 0b1,
+    "kotlin.collections.mapOf" to 0b11,
+    "kotlin.collections.emptyMap" to 0,
+    "kotlin.collections.setOf" to 0b1,
+    "kotlin.collections.emptySet" to 0,
 )
 
 fun stabilityOf(irType: IrType): Stability =
@@ -429,7 +429,7 @@ private fun IrSimpleType.substitutionMap(): Map<IrTypeParameterSymbol, IrTypeArg
 
 private fun stabilityOf(expr: IrCall, baseStability: Stability): Stability {
     val function = expr.symbol.owner
-    val fqName = function.fqNameForIrSerialization
+    val fqName = function.kotlinFqName
 
     return when (val mask = stableProducingFunctions[fqName.asString()]) {
         null -> baseStability
