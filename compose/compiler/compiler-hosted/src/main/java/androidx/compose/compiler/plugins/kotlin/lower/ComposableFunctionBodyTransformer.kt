@@ -3797,7 +3797,7 @@ class ComposableFunctionBodyTransformer(
             init {
                 val defaultParams = mutableListOf<IrValueParameter>()
                 val changedParams = mutableListOf<IrValueParameter>()
-                for (param in function.valueParameters) {
+                for (param in function.valueParameters.drop(function.contextReceiverParametersCount)) {
                     val paramName = param.name.asString()
                     when {
                         !paramName.startsWith('$') -> realValueParamCount++
