@@ -997,14 +997,14 @@ class IrSourcePrinterVisitor(
 
     private fun intAsBinaryString(value: Int): String {
         if (value == 0) return "0"
-        var current = abs(value)
+        var current = if (value >= 0) value else value.inv()
         var result = ""
         while (current != 0 || result.length % 4 != 0) {
             val nextBit = current and 1 != 0
-            current = current shr 1
+            current = current ushr 1
             result = "${if (nextBit) "1" else "0"}$result"
         }
-        return "${if (value < 0) "-" else ""}0b$result"
+        return "0b$result" + if (value < 0) ".inv()" else ""
     }
 
     override fun visitConst(expression: IrConst<*>) {

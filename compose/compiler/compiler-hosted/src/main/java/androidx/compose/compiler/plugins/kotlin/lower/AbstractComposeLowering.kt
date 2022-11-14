@@ -398,9 +398,6 @@ abstract class AbstractComposeLowering(
     protected fun IrType.binaryOperator(name: Name, paramType: IrType): IrFunctionSymbol =
         context.symbols.getBinaryOperator(name, this, paramType)
 
-    protected fun IrType.unaryOperator(name: Name): IrFunctionSymbol =
-        context.symbols.getUnaryOperator(name, this)
-
     protected fun irAnd(lhs: IrExpression, rhs: IrExpression): IrCallImpl {
         return irCall(
             lhs.type.binaryOperator(OperatorNameConventions.AND, rhs.type),
@@ -408,15 +405,6 @@ abstract class AbstractComposeLowering(
             lhs,
             null,
             rhs
-        )
-    }
-
-    protected fun irInv(lhs: IrExpression): IrCallImpl {
-        val int = context.irBuiltIns.intType
-        return irCall(
-            int.unaryOperator(OperatorNameConventions.INV),
-            null,
-            lhs
         )
     }
 

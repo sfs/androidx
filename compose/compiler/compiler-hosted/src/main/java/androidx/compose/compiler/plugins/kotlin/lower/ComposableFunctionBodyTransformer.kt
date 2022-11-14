@@ -4426,7 +4426,7 @@ class ComposableFunctionBodyTransformer(
                 temp,
                 irAnd(
                     irGet(temp),
-                    irInv(irConst(ParamState.Mask.bitsForSlot(slot)))
+                    irConst(ParamState.Mask.bitsForSlot(slot).inv())
                 )
             )
         }
