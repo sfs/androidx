@@ -18,7 +18,6 @@ package androidx.compose.compiler.plugins.kotlin.lower
 
 import androidx.compose.compiler.plugins.kotlin.KtxNameConventions
 import java.util.Locale
-import kotlin.math.abs
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.ir.IrBuiltIns
@@ -40,6 +39,7 @@ import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.declarations.IrTypeAlias
 import org.jetbrains.kotlin.ir.declarations.IrTypeParameter
+import org.jetbrains.kotlin.ir.declarations.IrValueDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 import org.jetbrains.kotlin.ir.declarations.IrVariable
 import org.jetbrains.kotlin.ir.expressions.IrBlock
@@ -107,16 +107,18 @@ import org.jetbrains.kotlin.ir.util.constructedClass
 import org.jetbrains.kotlin.ir.util.isAnnotationClass
 import org.jetbrains.kotlin.ir.util.isInterface
 import org.jetbrains.kotlin.ir.util.isObject
+import org.jetbrains.kotlin.ir.util.isSetter
 import org.jetbrains.kotlin.ir.util.parentAsClass
 import org.jetbrains.kotlin.ir.util.primaryConstructor
 import org.jetbrains.kotlin.ir.util.statements
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitorVoid
+import org.jetbrains.kotlin.name.SpecialNames
 import org.jetbrains.kotlin.types.Variance
 import org.jetbrains.kotlin.utils.Printer
 
-fun IrElement.dumpSrc(): String {
+fun IrElement.dumpSrc(useFir: Boolean = false): String {
     val sb = StringBuilder()
-    accept(IrSourcePrinterVisitor(sb, "%tab%"), null)
+    accept(IrSourcePrinterVisitor(sb, "%tab%", useFir), null)
     return sb
         .toString()
         // replace tabs at beginning of line with white space
@@ -135,6 +137,7 @@ fun IrElement.dumpSrc(): String {
 class IrSourcePrinterVisitor(
     out: Appendable,
     indentUnit: String = "  ",
+    private val useFir: Boolean = false,
 ) : IrElementVisitorVoid {
     private val printer = Printer(out, indentUnit)
 
@@ -187,7 +190,7 @@ class IrSourcePrinterVisitor(
             print("noinline ")
         }
         declaration.printAnnotations()
-        print(declaration.name)
+        print(declaration.normalizedName)
         print(": ")
         print(declaration.type.renderSrc())
         declaration.defaultValue?.let { it ->
@@ -496,7 +499,7 @@ class IrSourcePrinterVisitor(
                     trailingLambda = arg
                 } else {
                     arguments.add(arg)
-                    paramNames.add(param.name.asString())
+                    paramNames.add(param.normalizedName)
                 }
             } else {
                 useParameterNames = true
@@ -770,24 +773,27 @@ class IrSourcePrinterVisitor(
         println("}")
     }
 
+    private val IrFunction.isLambda: Boolean
+        get() = name.asString() == SpecialNames.ANONYMOUS_STRING ||
+            origin == IrDeclarationOrigin.ADAPTER_FOR_CALLABLE_REFERENCE
+
+    private val IrFunction.isDelegatedPropertySetter: Boolean
+        get() = isSetter && origin == IrDeclarationOrigin.DELEGATED_PROPERTY_ACCESSOR
+
     override fun visitReturn(expression: IrReturn) {
         val value = expression.value
-        // only print the return statement directly if it is not a lambda
+        // Only print the return statement directly if it is not a lambda, or a delegated property
+        // setter. The latter have a superfluous "return" in K1.
         val returnTarget = expression.returnTargetSymbol.owner
         if (returnTarget !is IrFunction ||
-            returnTarget.name.asString() != "<anonymous>" &&
-            returnTarget.origin != IrDeclarationOrigin.ADAPTER_FOR_CALLABLE_REFERENCE) {
+            !returnTarget.isLambda &&
+            (useFir || !returnTarget.isDelegatedPropertySetter)) {
             print("return ")
         }
-        if (expression.type.isUnit() || value.type.isUnit()) {
-            if (value is IrGetObjectValue) {
-                return
-            } else {
-                value.print()
-            }
-        } else {
-            value.print()
+        if (value.type.isUnit() && value is IrGetObjectValue) {
+            return
         }
+        value.print()
     }
 
     override fun visitBlock(expression: IrBlock) {
@@ -855,7 +861,7 @@ class IrSourcePrinterVisitor(
             declaration.isVar -> print("var ")
             else -> print("val ")
         }
-        print(declaration.name)
+        print(declaration.normalizedName)
         declaration.initializer?.let {
             print(" = ")
             it.print()
@@ -867,7 +873,7 @@ class IrSourcePrinterVisitor(
     }
 
     override fun visitGetValue(expression: IrGetValue) {
-        print(expression.symbol.owner.name)
+        print(expression.symbol.owner.normalizedName)
     }
 
     override fun visitField(declaration: IrField) {
@@ -924,7 +930,7 @@ class IrSourcePrinterVisitor(
     }
 
     override fun visitSetValue(expression: IrSetValue) {
-        print(expression.symbol.owner.name)
+        print(expression.symbol.owner.normalizedName)
         print(" = ")
         expression.value.print()
     }
@@ -1434,7 +1440,7 @@ class IrSourcePrinterVisitor(
             if (owner is IrFunction) {
                 (0 until expectedCount).map {
                     if (it < owner.valueParameters.size)
-                        owner.valueParameters[it].name.asString()
+                        owner.valueParameters[it].normalizedName
                     else
                         "${it + 1}"
                 }
@@ -1465,6 +1471,18 @@ class IrSourcePrinterVisitor(
             else -> append(irElement.accept(this@IrSourcePrinterVisitor, null))
         }
     }
+
+    // Names for temporary variables and synthesized parameters are not consistent between
+    // K1 and K2. This function returns the same name for both frontends.
+    private val IrValueDeclaration.normalizedName: String
+        get() = when {
+            // FIR generates both <iterator> and tmp0_for_iterator...
+            origin == IrDeclarationOrigin.FOR_LOOP_ITERATOR -> "<iterator>"
+            !useFir && origin == IrDeclarationOrigin.UNDERSCORE_PARAMETER -> "<unused var>"
+            !useFir && name.asString().endsWith("_elvis_lhs") -> "<elvis>"
+            useFir && name.asString().startsWith("_context_receiver_") -> "\$this$"
+            else -> name.asString()
+        }
 
     override fun visitElement(element: IrElement) {
         print("<<${element::class.java.simpleName}>>")

@@ -708,9 +708,9 @@ class RememberIntrinsicTransformTests(useFir: Boolean) : AbstractIrTransformTest
               if (isTraceInProgress()) {
                 traceEventStart(<>, %changed, -1, <>)
               }
-              val tmp0_iterator = items.iterator()
-              while (tmp0_iterator.hasNext()) {
-                val item = tmp0_iterator.next()
+              val <iterator> = items.iterator()
+              while (<iterator>.hasNext()) {
+                val item = <iterator>.next()
                 val foo = remember({
                   Foo()
                 }, %composer, 0)
@@ -752,9 +752,9 @@ class RememberIntrinsicTransformTests(useFir: Boolean) : AbstractIrTransformTest
               if (isTraceInProgress()) {
                 traceEventStart(<>, %changed, -1, <>)
               }
-              val tmp0_iterator = items.iterator()
-              while (tmp0_iterator.hasNext()) {
-                val item = tmp0_iterator.next()
+              val <iterator> = items.iterator()
+              while (<iterator>.hasNext()) {
+                val item = <iterator>.next()
                 val foo = remember({
                   Foo()
                 }, %composer, 0)

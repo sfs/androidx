@@ -836,11 +836,11 @@ class FunctionBodySkippingTransformTests(useFir: Boolean) : FunctionBodySkipping
                 traceEventStart(<>, %changed, -1, <>)
               }
               Call(%composer, 0)
-              val tmp0_iterator = 0 .. 1.iterator()
-              while (tmp0_iterator.hasNext()) {
+              val <iterator> = 0 .. 1.iterator()
+              while (<iterator>.hasNext()) {
                 %composer.startReplaceableGroup(<>)
                 sourceInformation(%composer, "<Call()>,<Call()>")
-                val index = tmp0_iterator.next()
+                val index = <iterator>.next()
                 Call(%composer, 0)
                 if (condition()) {
                   %composer.endReplaceableGroup()
@@ -1172,9 +1172,9 @@ class FunctionBodySkippingTransformTests(useFir: Boolean) : FunctionBodySkipping
               sourceInformation(%composer, "C(B):Test.kt")
               val %dirty = %changed
               %composer.startMovableGroup(<>, values.size)
-              val tmp0_iterator = values.iterator()
-              while (tmp0_iterator.hasNext()) {
-                val value = tmp0_iterator.next()
+              val <iterator> = values.iterator()
+              while (<iterator>.hasNext()) {
+                val value = <iterator>.next()
                 %dirty = %dirty or if (%composer.changed(value)) 0b0100 else 0
               }
               %composer.endMovableGroup()
@@ -1218,9 +1218,9 @@ class FunctionBodySkippingTransformTests(useFir: Boolean) : FunctionBodySkipping
               sourceInformation(%composer, "C(B):Test.kt")
               val %dirty = %changed
               %composer.startMovableGroup(<>, values.size)
-              val tmp0_iterator = values.iterator()
-              while (tmp0_iterator.hasNext()) {
-                val value = tmp0_iterator.next()
+              val <iterator> = values.iterator()
+              while (<iterator>.hasNext()) {
+                val value = <iterator>.next()
                 %dirty = %dirty or if (%composer.changed(value)) 0b0100 else 0
               }
               %composer.endMovableGroup()
@@ -3840,9 +3840,9 @@ class FunctionBodySkippingTransformTests(useFir: Boolean) : FunctionBodySkipping
                 %dirty = %dirty or if (%composer.changed(state)) 0b0100 else 0b0010
               }
               %composer.startMovableGroup(<>, values.size)
-              val tmp0_iterator = values.iterator()
-              while (tmp0_iterator.hasNext()) {
-                val value = tmp0_iterator.next()
+              val <iterator> = values.iterator()
+              while (<iterator>.hasNext()) {
+                val value = <iterator>.next()
                 %dirty = %dirty or if (%composer.changed(value)) 0b00100000 else 0
               }
               %composer.endMovableGroup()

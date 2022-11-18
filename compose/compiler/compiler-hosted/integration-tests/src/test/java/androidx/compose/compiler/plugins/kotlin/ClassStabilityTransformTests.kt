@@ -644,7 +644,7 @@ class ClassStabilityTransformTests(useFir: Boolean) : AbstractIrTransformTest(us
                   return <this>.p1%delegate.getValue()
                 }
                 set(value) {
-                  return <this>.p1%delegate.setValue()
+                  <this>.p1%delegate.setValue()
                 }
               static val %stable: Int = 0
             }
@@ -655,7 +655,7 @@ class ClassStabilityTransformTests(useFir: Boolean) : AbstractIrTransformTest(us
                   return <this>.p1%delegate.getValue()
                 }
                 set(value) {
-                  return <this>.p1%delegate.setValue()
+                  <this>.p1%delegate.setValue()
                 }
               static val %stable: Int = 8
             }
@@ -865,7 +865,7 @@ class ClassStabilityTransformTests(useFir: Boolean) : AbstractIrTransformTest(us
                   return <this>.p1%delegate.getValue()
                 }
                 set(value) {
-                  return <this>.p1%delegate.setValue()
+                  <this>.p1%delegate.setValue()
                 }
               static val %stable: Int = 0
             }
@@ -876,7 +876,7 @@ class ClassStabilityTransformTests(useFir: Boolean) : AbstractIrTransformTest(us
                   return <this>.p1%delegate.getValue()
                 }
                 set(value) {
-                  return <this>.p1%delegate.setValue()
+                  <this>.p1%delegate.setValue()
                 }
               static val %stable: Int = UnstableDelegate.%stable
             }
@@ -998,9 +998,9 @@ class ClassStabilityTransformTests(useFir: Boolean) : AbstractIrTransformTest(us
               if (isTraceInProgress()) {
                 traceEventStart(<>, %dirty, -1, <>)
               }
-              val tmp0_iterator = items.iterator()
-              while (tmp0_iterator.hasNext()) {
-                val item = tmp0_iterator.next()
+              val <iterator> = items.iterator()
+              while (<iterator>.hasNext()) {
+                val item = <iterator>.next()
                 itemContent(item, %composer, 0b01110000 and %dirty)
               }
               if (isTraceInProgress()) {
