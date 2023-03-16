@@ -3755,9 +3755,9 @@ class ComposableFunctionBodyTransformer(
             // parameters are in sorted order.
             private fun parameterInformation(): String {
                 val builder = StringBuilder("P(")
-                val parameters = function.valueParameters.filter {
-                    !it.name.asString().startsWith("$")
-                }
+                val parameters = function.valueParameters
+                    .drop(function.contextReceiverParametersCount)
+                    .filter { !it.name.asString().startsWith("$") }
                 val sortIndex = mapOf(
                     *parameters.mapIndexed { index, parameter ->
                         Pair(index, parameter)
@@ -3849,7 +3849,7 @@ class ComposableFunctionBodyTransformer(
             init {
                 val defaultParams = mutableListOf<IrValueParameter>()
                 val changedParams = mutableListOf<IrValueParameter>()
-                for (param in function.valueParameters) {
+                for (param in function.valueParameters.drop(function.contextReceiverParametersCount)) {
                     val paramName = param.name.asString()
                     when {
                         !paramName.startsWith('$') &&
