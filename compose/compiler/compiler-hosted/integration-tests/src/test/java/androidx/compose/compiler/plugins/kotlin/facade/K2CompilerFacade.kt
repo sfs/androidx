@@ -41,14 +41,15 @@ import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.JVMConfigurationKeys
 import org.jetbrains.kotlin.config.LanguageVersionSettingsImpl
+import org.jetbrains.kotlin.config.languageVersionSettings
 import org.jetbrains.kotlin.diagnostics.DiagnosticReporterFactory
 import org.jetbrains.kotlin.diagnostics.impl.BaseDiagnosticsCollector
 import org.jetbrains.kotlin.fir.FirSession
-import org.jetbrains.kotlin.fir.backend.Fir2IrResult
 import org.jetbrains.kotlin.fir.backend.jvm.FirJvmBackendClassResolver
 import org.jetbrains.kotlin.fir.backend.jvm.FirJvmBackendExtension
 import org.jetbrains.kotlin.fir.backend.jvm.JvmFir2IrExtensions
 import org.jetbrains.kotlin.fir.extensions.FirExtensionRegistrar
+import org.jetbrains.kotlin.fir.pipeline.Fir2IrActualizedResult
 import org.jetbrains.kotlin.fir.pipeline.FirResult
 import org.jetbrains.kotlin.fir.pipeline.ModuleCompilerAnalyzedOutput
 import org.jetbrains.kotlin.fir.pipeline.buildResolveAndCheckFir
@@ -74,7 +75,7 @@ class FirAnalysisResult(
 }
 
 private class FirFrontendResult(
-    val firResult: Fir2IrResult,
+    val firResult: Fir2IrActualizedResult,
     val generatorExtensions: JvmGeneratorExtensions,
 )
 
@@ -120,7 +121,9 @@ class K2CompilerFacade(environment: KotlinCoreEnvironment) : KotlinCompilerFacad
         )).convertToIrAndActualizeForJvm(
             fir2IrExtensions,
             IrGenerationExtension.getInstances(project),
-            linkViaSignatures = configuration.getBoolean(JVMConfigurationKeys.LINK_VIA_SIGNATURES)
+            linkViaSignatures = configuration.getBoolean(JVMConfigurationKeys.LINK_VIA_SIGNATURES),
+            diagnosticReporter = analysisResult.reporter,
+            languageVersionSettings = configuration.languageVersionSettings
         )
 
         return FirFrontendResult(fir2IrResult, fir2IrExtensions)
@@ -153,7 +156,8 @@ class K2CompilerFacade(environment: KotlinCoreEnvironment) : KotlinCompilerFacad
         )
         codegenFactory.generateModuleInFrontendIRMode(
             generationState, irModuleFragment, components.symbolTable, components.irProviders,
-            frontendResult.generatorExtensions, FirJvmBackendExtension(components),
+            frontendResult.generatorExtensions,
+            FirJvmBackendExtension(components, frontendResult.firResult.irActualizationResult),
             frontendResult.firResult.pluginContext
         ) {}
         generationState.factory.done()
