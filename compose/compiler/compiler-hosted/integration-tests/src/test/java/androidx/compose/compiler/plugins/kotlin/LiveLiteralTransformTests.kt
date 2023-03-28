@@ -19,7 +19,7 @@ package androidx.compose.compiler.plugins.kotlin
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.junit.Test
 
-class LiveLiteralTransformTests : AbstractLiveLiteralTransformTests() {
+class LiveLiteralTransformTests(useFir: Boolean) : AbstractLiveLiteralTransformTests(useFir) {
     override fun CompilerConfiguration.updateConfiguration() {
         put(ComposeConfiguration.LIVE_LITERALS_ENABLED_KEY, true)
     }
