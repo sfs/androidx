@@ -160,12 +160,6 @@ class ComposableDeclarationCheckerTests(useFir: Boolean) : AbstractComposeDiagno
             // In K2, the frontend forbids function types with multiple kinds, so
             // `@Composable suspend` function types get turned into error types. This is the
             // reason for the additional ARGUMENT_TYPE_MISMATCH errors.
-            //
-            // The WRONG_MODIFIER_TARGET error is due to an implementation detail
-            // of the Kotlin compiler: the `suspend` in suspend lambdas is not a keyword, but
-            // rather a (synthetic) function call, which wouldn't work with custom function
-            // type kinds. This is a known issue with the compiler and the error message should
-            // improve in subsequent compiler versions.
             """
             import androidx.compose.runtime.Composable
 
@@ -181,7 +175,7 @@ class ComposableDeclarationCheckerTests(useFir: Boolean) : AbstractComposeDiagno
                 acceptSuspend @Composable <!ARGUMENT_TYPE_MISMATCH!>{}<!>
                 acceptComposableSuspend @Composable <!ARGUMENT_TYPE_MISMATCH!>{}<!>
                 acceptComposableSuspend(<!ARGUMENT_TYPE_MISMATCH!>composableLambda<!>)
-                acceptSuspend(<!ARGUMENT_TYPE_MISMATCH!>@Composable <!WRONG_MODIFIER_TARGET!>suspend<!> fun() { }<!>)
+                acceptSuspend(<!ARGUMENT_TYPE_MISMATCH!>@Composable suspend fun() { }<!>)
             }
         """
         })
