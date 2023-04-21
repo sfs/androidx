@@ -157,7 +157,7 @@ class K2CompilerFacade(environment: KotlinCoreEnvironment) : KotlinCompilerFacad
         codegenFactory.generateModuleInFrontendIRMode(
             generationState, irModuleFragment, components.symbolTable, components.irProviders,
             frontendResult.generatorExtensions,
-            FirJvmBackendExtension(components, frontendResult.firResult.irActualizationResult),
+            FirJvmBackendExtension(components, frontendResult.firResult.irActualizedResult),
             frontendResult.firResult.pluginContext
         ) {}
         generationState.factory.done()
