@@ -242,6 +242,10 @@ open class ComposableCallChecker :
                                 // setValue delegate is not allowed for now.
                                 illegalComposableDelegate(context, reportOn)
                             }
+                            if (descriptor is PropertyDescriptor &&
+                                descriptor.getter?.hasComposableAnnotation() != true) {
+                                composableExpected(context, node.nameIdentifier ?: node)
+                            }
                             return
                         }
                     }
@@ -317,8 +321,15 @@ open class ComposableCallChecker :
     ) {
         context.trace.report(ComposeErrors.COMPOSABLE_INVOCATION.on(callEl))
         if (functionEl != null) {
-            context.trace.report(ComposeErrors.COMPOSABLE_EXPECTED.on(functionEl))
+            composableExpected(context, functionEl)
         }
+    }
+
+    private fun composableExpected(
+        context: CallCheckerContext,
+        functionEl: PsiElement
+    ) {
+        context.trace.report(ComposeErrors.COMPOSABLE_EXPECTED.on(functionEl))
     }
 
     private fun illegalCallMustBeReadonly(
