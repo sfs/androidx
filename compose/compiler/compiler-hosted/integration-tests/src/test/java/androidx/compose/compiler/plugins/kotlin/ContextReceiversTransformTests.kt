@@ -518,7 +518,7 @@ class ContextReceiversTransformTests(useFir: Boolean) : AbstractIrTransformTest(
             @Composable
             fun Test(%context_receiver_0: A, %context_receiver_1: B, %context_receiver_2: C, %context_receiver_3: D, %context_receiver_4: E, %context_receiver_5: F, %context_receiver_6: G, %context_receiver_7: H, %context_receiver_8: I, %context_receiver_9: J, %context_receiver_10: K, %context_receiver_11: L, %composer: Composer?, %changed: Int, %changed1: Int) {
               %composer = %composer.startRestartGroup(<>)
-              sourceInformation(%composer, "C(Test)P(!2,4,5,6,7,8,9,10,11):Test.kt")
+              sourceInformation(%composer, "C(Test):Test.kt")
               if (%changed and 0b0001 !== 0 || %changed1 and 0b0001 !== 0 || !%composer.skipping) {
                 if (isTraceInProgress()) {
                   traceEventStart(<>, %changed, %changed1, <>)
