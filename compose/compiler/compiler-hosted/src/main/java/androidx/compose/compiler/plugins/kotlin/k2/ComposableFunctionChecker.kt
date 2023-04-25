@@ -28,8 +28,10 @@ import org.jetbrains.kotlin.fir.containingClassLookupTag
 import org.jetbrains.kotlin.fir.declarations.FirFunction
 import org.jetbrains.kotlin.fir.declarations.FirPropertyAccessor
 import org.jetbrains.kotlin.fir.declarations.utils.isAbstract
+import org.jetbrains.kotlin.fir.declarations.utils.isOperator
 import org.jetbrains.kotlin.fir.declarations.utils.isOverride
 import org.jetbrains.kotlin.fir.declarations.utils.isSuspend
+import org.jetbrains.kotlin.fir.declarations.utils.nameOrSpecialName
 import org.jetbrains.kotlin.fir.resolve.toSymbol
 import org.jetbrains.kotlin.fir.scopes.getDirectOverriddenFunctions
 import org.jetbrains.kotlin.fir.scopes.getDirectOverriddenProperties
@@ -45,6 +47,7 @@ import org.jetbrains.kotlin.fir.types.isString
 import org.jetbrains.kotlin.fir.types.isUnit
 import org.jetbrains.kotlin.fir.types.type
 import org.jetbrains.kotlin.name.StandardClassIds
+import org.jetbrains.kotlin.util.OperatorNameConventions
 
 // - DONE Composable suspend functions are forbidden
 // - DONE Abstract composable functions may not have default arguments.
@@ -101,6 +104,12 @@ object ComposableFunctionChecker : FirFunctionChecker() {
         // Composable main functions are not allowed.
         if (declaration.symbol.isMain(context.session)) {
             reporter.reportOn(declaration.source, ComposeErrors.COMPOSABLE_FUN_MAIN, context)
+        }
+
+        // Disallow composable setValue operators
+        if (declaration.isOperator
+            && declaration.nameOrSpecialName == OperatorNameConventions.SET_VALUE) {
+            reporter.reportOn(declaration.source, ComposeErrors.COMPOSE_INVALID_DELEGATE, context)
         }
     }
 

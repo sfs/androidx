@@ -89,5 +89,10 @@ object ComposeErrorMessages : BaseDiagnosticRendererFactory() {
             ComposeErrors.COMPOSABLE_VAR,
             "Composable properties are not able to have backing fields"
         )
+
+        map.put(
+            ComposeErrors.COMPOSE_INVALID_DELEGATE,
+            "Composable setValue operator is not currently supported."
+        )
     }
 }

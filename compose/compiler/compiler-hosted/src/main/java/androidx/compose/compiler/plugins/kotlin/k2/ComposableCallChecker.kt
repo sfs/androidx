@@ -163,6 +163,23 @@ private fun checkComposableCall(
                 }
                 return
             }
+            // We allow composable calls in local delegated properties.
+            // The only call this could be is a getValue/setValue in the synthesized getter/setter.
+            if (function is FirPropertyAccessor && function.propertySymbol.hasDelegate) {
+                if (function.propertySymbol.isVar) {
+                    reporter.reportOn(
+                        function.source,
+                        ComposeErrors.COMPOSE_INVALID_DELEGATE,
+                        context
+                    )
+                }
+                // Only local variables can be implicitly composable, for top-level or class-level
+                // declarations we require an explicit annotation.
+                if (!function.propertySymbol.isLocal) {
+                    reporter.reportOn(function.propertySymbol.source, ComposeErrors.COMPOSABLE_EXPECTED, context)
+                }
+                return
+            }
             // We've found a non-composable function which contains a composable call.
             val source = if (function is FirPropertyAccessor) {
                 function.propertySymbol.source

@@ -20,9 +20,14 @@ import androidx.compose.compiler.plugins.kotlin.ComposeClassIds
 import org.jetbrains.kotlin.fir.FirAnnotationContainer
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.declarations.hasAnnotation
+import org.jetbrains.kotlin.fir.expressions.FirFunctionCall
+import org.jetbrains.kotlin.fir.expressions.FirReturnExpression
+import org.jetbrains.kotlin.fir.references.toResolvedCallableSymbol
 import org.jetbrains.kotlin.fir.symbols.FirBasedSymbol
+import org.jetbrains.kotlin.fir.symbols.SymbolInternals
 import org.jetbrains.kotlin.fir.symbols.impl.FirCallableSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirFunctionSymbol
+import org.jetbrains.kotlin.fir.symbols.impl.FirPropertyAccessorSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirPropertySymbol
 
 fun FirAnnotationContainer.hasComposableAnnotation(session: FirSession): Boolean =
@@ -45,7 +50,9 @@ fun FirCallableSymbol<*>.isComposable(session: FirSession): Boolean =
         is FirFunctionSymbol<*> ->
             hasComposableAnnotation(session)
         is FirPropertySymbol ->
-            getterSymbol?.hasComposableAnnotation(session) ?: false
+            getterSymbol?.let {
+                it.hasComposableAnnotation(session) || it.isComposableDelegate(session)
+            } ?: false
         else -> false
     }
 
@@ -57,3 +64,17 @@ fun FirCallableSymbol<*>.isReadOnlyComposable(session: FirSession): Boolean =
             getterSymbol?.hasReadOnlyComposableAnnotation(session) ?: false
         else -> false
     }
+
+@OptIn(SymbolInternals::class)
+private fun FirPropertyAccessorSymbol.isComposableDelegate(session: FirSession): Boolean {
+    if (!propertySymbol.hasDelegate) return false
+    return ((fir
+        .body
+        ?.statements
+        ?.singleOrNull() as? FirReturnExpression)
+        ?.result as? FirFunctionCall)
+        ?.calleeReference
+        ?.toResolvedCallableSymbol()
+        ?.isComposable(session)
+        ?: false
+}

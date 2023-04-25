@@ -20,6 +20,7 @@ import com.intellij.lang.LighterASTNode
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
 import com.intellij.util.diff.FlyweightCapableTreeStructure
+import org.jetbrains.kotlin.diagnostics.LightTreePositioningStrategies
 import org.jetbrains.kotlin.diagnostics.LightTreePositioningStrategy
 import org.jetbrains.kotlin.diagnostics.PositioningStrategies
 import org.jetbrains.kotlin.diagnostics.PositioningStrategy
@@ -35,6 +36,7 @@ import org.jetbrains.kotlin.fir.symbols.impl.FirCallableSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirValueParameterSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirVariableSymbol
 import org.jetbrains.kotlin.lexer.KtTokens
+import org.jetbrains.kotlin.psi.KtNamedDeclaration
 import org.jetbrains.kotlin.psi.KtTryExpression
 
 object ComposeErrors {
@@ -72,6 +74,8 @@ object ComposeErrors {
 
     val COMPOSABLE_VAR by error0<PsiElement>(SourceElementPositioningStrategies.DECLARATION_NAME)
 
+    val COMPOSE_INVALID_DELEGATE by error0<PsiElement>(ComposeSourceElementPositioningStrategies.DECLARATION_NAME_OR_DEFAULT)
+
     init {
         RootDiagnosticRendererFactory.registerFactory(ComposeErrorMessages)
     }
@@ -101,8 +105,23 @@ object ComposeSourceElementPositioningStrategies {
         }
     }
 
+    private val PSI_DECLARATION_NAME_OR_DEFAULT: PositioningStrategy<PsiElement> =
+        object : PositioningStrategy<PsiElement>() {
+            override fun mark(element: PsiElement): List<TextRange> {
+                if (element is KtNamedDeclaration) {
+                    return PositioningStrategies.DECLARATION_NAME.mark(element)
+                }
+                return PositioningStrategies.DEFAULT.mark(element)
+            }
+        }
+
     val TRY_KEYWORD = SourceElementPositioningStrategy(
         LIGHT_TREE_TRY_KEYWORD,
         PSI_TRY_KEYWORD
+    )
+
+    val DECLARATION_NAME_OR_DEFAULT = SourceElementPositioningStrategy(
+        LightTreePositioningStrategies.DECLARATION_NAME,
+        PSI_DECLARATION_NAME_OR_DEFAULT
     )
 }
