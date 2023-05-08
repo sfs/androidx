@@ -225,7 +225,8 @@ class ComposeCallResolverTests : AbstractCodegenTest(useFir = false) {
     private fun assertInterceptions(srcText: String) {
         val (text, carets) = extractCarets(srcText)
 
-        val analysisResult = analyze(listOf(SourceFile("test.kt", text))) as K1AnalysisResult
+        val analysisResults = analyze(listOf(SourceFile("test.kt", text)))
+        val analysisResult = analysisResults.first() as K1AnalysisResult
         val bindingContext = analysisResult.bindingContext
         val ktFile = analysisResult.files.single()
 

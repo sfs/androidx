@@ -51,14 +51,14 @@ private class K1FrontendResult(
 )
 
 class K1CompilerFacade(environment: KotlinCoreEnvironment) : KotlinCompilerFacade(environment) {
-    override fun analyze(files: List<SourceFile>): K1AnalysisResult {
-        val ktFiles = files.map { it.toKtFile(environment.project) }
-        for (file in ktFiles) {
-            file.isCommonSource = true
-        }
+    override fun analyze(platformFiles: List<SourceFile>, commonFiles: List<SourceFile>): List<K1AnalysisResult> {
+        val allKtFiles = platformFiles.map { it.toKtFile(environment.project) } +
+            commonFiles.map {
+                it.toKtFile(environment.project).also { ktFile -> ktFile.isCommonSource = true }
+            }
         val result = TopDownAnalyzerFacadeForJVM.analyzeFilesWithJavaIntegration(
             environment.project,
-            ktFiles,
+            allKtFiles,
             CliBindingTrace(),
             environment.configuration,
             environment::createPackagePartProvider
@@ -70,11 +70,11 @@ class K1CompilerFacade(environment: KotlinCoreEnvironment) : KotlinCompilerFacad
             throw TestsCompilerError(e)
         }
 
-        return K1AnalysisResult(ktFiles, result.moduleDescriptor, result.bindingContext)
+        return listOf(K1AnalysisResult(allKtFiles, result.moduleDescriptor, result.bindingContext))
     }
 
-    private fun frontend(files: List<SourceFile>): K1FrontendResult {
-        val analysisResult = analyze(files)
+    private fun frontend(platformFiles: List<SourceFile>, commonFiles: List<SourceFile>): K1FrontendResult {
+        val analysisResult = analyze(platformFiles, commonFiles).first()
 
         // `analyze` only throws if the analysis itself failed, since we use it to test code
         // with errors. That's why we have to check for errors before we run psi2ir.
@@ -121,11 +121,11 @@ class K1CompilerFacade(environment: KotlinCoreEnvironment) : KotlinCompilerFacad
     }
 
     override fun compileToIr(files: List<SourceFile>): IrModuleFragment =
-        frontend(files).backendInput.irModuleFragment
+        frontend(files, listOf()).backendInput.irModuleFragment
 
-    override fun compile(files: List<SourceFile>): GenerationState =
+    override fun compile(platformFiles: List<SourceFile>, commonFiles: List<SourceFile>): GenerationState =
         try {
-            frontend(files).apply {
+            frontend(platformFiles, commonFiles).apply {
                 codegenFactory.generateModule(state, backendInput)
                 state.factory.done()
             }.state

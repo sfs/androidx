@@ -26,24 +26,22 @@ import org.junit.Assert.assertThrows
 abstract class AbstractComposeDiagnosticsTest(useFir: Boolean) : AbstractCompilerTest(useFir) {
     protected fun check(
         expectedText: String,
-        platformText: String? = null,
+        commonText: String? = null,
         ignoreParseErrors: Boolean = false
     ) {
         val clearText = CheckerTestUtil.parseDiagnosedRanges(expectedText, mutableListOf())
-        val clearPlatformText = platformText?.let {
-            CheckerTestUtil.parseDiagnosedRanges(platformText, mutableListOf())
+        val clearCommonText = commonText?.let {
+            CheckerTestUtil.parseDiagnosedRanges(commonText, mutableListOf())
         }
 
         val errors = analyze(
-            listOfNotNull(
-                SourceFile("test.kt", clearText, ignoreParseErrors),
-                clearPlatformText?.let { SourceFile("Actual.kt", it, ignoreParseErrors) }
-            )
-        ).diagnostics
+            listOf(SourceFile("test.kt", clearText, ignoreParseErrors)),
+            listOfNotNull(clearCommonText?.let { SourceFile("Actual.kt", it, ignoreParseErrors) }),
+        ).flatMap { it.diagnostics.entries }.associate { it.key to it.value }
 
         assertEquals(expectedText, annotateDiagnostics(clearText, errors["test.kt"] ?: listOf()))
-        if (clearPlatformText != null) {
-            assertEquals(platformText, annotateDiagnostics(clearPlatformText, errors["Actual.kt"] ?: listOf()))
+        if (clearCommonText != null) {
+            assertEquals(commonText, annotateDiagnostics(clearCommonText, errors["Actual.kt"] ?: listOf()))
         }
     }
 
@@ -75,7 +73,6 @@ abstract class AbstractComposeDiagnosticsTest(useFir: Boolean) : AbstractCompile
                 append(c)
             }
         }
-
     }
 
     protected fun checkFail(expectedText: String) {

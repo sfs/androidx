@@ -35,14 +35,14 @@ class ComposeMultiplatformCheckerTests(useFir: Boolean) : AbstractComposeDiagnos
         check(
             """
                 import androidx.compose.runtime.Composable
+                actual fun <!MISMATCHED_COMPOSABLE_IN_EXPECT_ACTUAL!>A<!>() {}
+                @Composable actual fun <!MISMATCHED_COMPOSABLE_IN_EXPECT_ACTUAL!>B<!>() {}
+            """,
+            """
+                import androidx.compose.runtime.Composable
                 @Composable expect fun A()
                 expect fun B()
             """,
-            platformText = """
-                import androidx.compose.runtime.Composable
-                actual fun <!MISMATCHED_COMPOSABLE_IN_EXPECT_ACTUAL!>A<!>() {}
-                @Composable actual fun <!MISMATCHED_COMPOSABLE_IN_EXPECT_ACTUAL!>B<!>() {}
-            """
         )
     }
 }
