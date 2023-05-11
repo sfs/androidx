@@ -37,8 +37,8 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 
-@RunWith(JUnit4::class)
-class RunComposableTests : AbstractCodegenTest(useFir = false) {
+//@RunWith(JUnit4::class)
+class RunComposableTests(useFir: Boolean) : AbstractCodegenTest(useFir) {
     override fun CompilerConfiguration.updateConfiguration() {
         setupLanguageVersionSettings(K2JVMCompilerArguments().apply {
             // enabling multiPlatform to use expect/actual declarations
@@ -338,7 +338,6 @@ class RunComposableTests : AbstractCodegenTest(useFir = false) {
                 "Actual.kt" to """
                     import androidx.compose.runtime.*
 
-                    @Composable
                     actual fun ExpectFunWithComposableParam(
                         value: String,
                         content: @Composable (v: String) -> Unit

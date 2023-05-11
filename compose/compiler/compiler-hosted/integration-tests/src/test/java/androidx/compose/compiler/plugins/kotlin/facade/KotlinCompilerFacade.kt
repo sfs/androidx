@@ -86,7 +86,7 @@ interface AnalysisResult {
     )
 
     val files: List<KtFile>
-    val diagnostics: List<Diagnostic>
+    val diagnostics: Map<String, List<Diagnostic>>
 }
 
 abstract class KotlinCompilerFacade(val environment: KotlinCoreEnvironment) {

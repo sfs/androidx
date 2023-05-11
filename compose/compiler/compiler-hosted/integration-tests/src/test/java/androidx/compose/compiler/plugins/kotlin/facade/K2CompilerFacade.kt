@@ -70,10 +70,11 @@ class FirAnalysisResult(
     override val files: List<KtFile>,
     val reporter: BaseDiagnosticsCollector
 ): AnalysisResult {
-    override val diagnostics: List<AnalysisResult.Diagnostic>
-        get() = reporter.diagnostics.map {
-            AnalysisResult.Diagnostic(it.factoryName, it.textRanges)
-        }
+    override val diagnostics: Map<String, List<AnalysisResult.Diagnostic>>
+        get() = reporter.diagnostics.groupBy(
+            keySelector = { it.psiElement.containingFile.name },
+            valueTransform = { AnalysisResult.Diagnostic(it.factoryName, it.textRanges) }
+        )
 }
 
 private class FirFrontendResult(

@@ -160,6 +160,12 @@ object ComposeErrors {
             Severity.ERROR
         )
 
+    @JvmField
+    val MISMATCHED_COMPOSABLE_IN_EXPECT_ACTUAL =
+        DiagnosticFactory0.create<PsiElement>(
+            Severity.ERROR
+        )
+
     init {
         Errors.Initializer.initializeFactoryNamesAndDefaultErrorMessages(
             ComposeErrors::class.java,

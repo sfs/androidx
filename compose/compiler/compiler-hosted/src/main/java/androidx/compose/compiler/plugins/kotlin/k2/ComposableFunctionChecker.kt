@@ -22,6 +22,7 @@ import org.jetbrains.kotlin.fir.analysis.checkers.context.CheckerContext
 import org.jetbrains.kotlin.fir.analysis.checkers.declaration.FirFunctionChecker
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors
 import org.jetbrains.kotlin.fir.declarations.FirFunction
+import org.jetbrains.kotlin.fir.declarations.getSingleCompatibleExpectForActualOrNull
 import org.jetbrains.kotlin.fir.declarations.utils.isAbstract
 import org.jetbrains.kotlin.fir.declarations.utils.isOperator
 import org.jetbrains.kotlin.fir.declarations.utils.isSuspend
@@ -48,6 +49,17 @@ object ComposableFunctionChecker : FirFunctionChecker() {
             }
 
             // TODO Check scheme of override against declaration
+        }
+
+        // Check that `actual` composable declarations have composable expects
+        declaration.symbol.getSingleCompatibleExpectForActualOrNull()?.let { expectDeclaration ->
+            if (expectDeclaration.hasComposableAnnotation(context.session) != isComposable) {
+                reporter.reportOn(
+                    declaration.source,
+                    ComposeErrors.MISMATCHED_COMPOSABLE_IN_EXPECT_ACTUAL,
+                    context
+                )
+            }
         }
 
         if (!isComposable) return

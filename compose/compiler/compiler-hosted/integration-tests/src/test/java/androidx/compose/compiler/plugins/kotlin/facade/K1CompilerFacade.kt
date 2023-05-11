@@ -30,16 +30,18 @@ import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.resolve.AnalyzingUtils
 import org.jetbrains.kotlin.resolve.BindingContext
+import org.jetbrains.kotlin.resolve.multiplatform.isCommonSource
 
 class K1AnalysisResult(
     override val files: List<KtFile>,
     val moduleDescriptor: ModuleDescriptor,
     val bindingContext: BindingContext
 ) : AnalysisResult {
-    override val diagnostics: List<AnalysisResult.Diagnostic>
-        get() = bindingContext.diagnostics.all().map {
-            AnalysisResult.Diagnostic(it.factoryName, it.textRanges)
-        }
+    override val diagnostics: Map<String, List<AnalysisResult.Diagnostic>>
+        get() = bindingContext.diagnostics.all().groupBy(
+            keySelector =  { it.psiFile.name },
+            valueTransform = { AnalysisResult.Diagnostic(it.factoryName, it.textRanges) }
+        )
 }
 
 private class K1FrontendResult(
@@ -51,6 +53,9 @@ private class K1FrontendResult(
 class K1CompilerFacade(environment: KotlinCoreEnvironment) : KotlinCompilerFacade(environment) {
     override fun analyze(files: List<SourceFile>): K1AnalysisResult {
         val ktFiles = files.map { it.toKtFile(environment.project) }
+        for (file in ktFiles) {
+            file.isCommonSource = true
+        }
         val result = TopDownAnalyzerFacadeForJVM.analyzeFilesWithJavaIntegration(
             environment.project,
             ktFiles,
