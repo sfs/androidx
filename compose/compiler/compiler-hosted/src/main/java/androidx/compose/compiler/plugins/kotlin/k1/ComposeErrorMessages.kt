@@ -128,5 +128,9 @@ class ComposeErrorMessages : DefaultErrorMessages.Extension {
             ComposeErrors.COMPOSE_INVALID_DELEGATE,
             "Composable setValue operator is not currently supported."
         )
+        MAP.put(
+            ComposeErrors.MISMATCHED_COMPOSABLE_IN_EXPECT_ACTUAL,
+            "Mismatched @Composable annotation between expect and actual declaration"
+        )
     }
 }

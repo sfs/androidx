@@ -16,23 +16,51 @@
 
 package androidx.compose.compiler.plugins.kotlin
 
+import androidx.compose.compiler.plugins.kotlin.facade.AnalysisResult
 import androidx.compose.compiler.plugins.kotlin.facade.SourceFile
-import org.jetbrains.kotlin.checkers.DiagnosedRange
 import org.jetbrains.kotlin.checkers.utils.CheckerTestUtil
 import org.jetbrains.kotlin.utils.addToStdlib.flatGroupBy
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
 
 abstract class AbstractComposeDiagnosticsTest(useFir: Boolean) : AbstractCompilerTest(useFir) {
-    protected fun check(expectedText: String, ignoreParseErrors: Boolean = false) {
-        val diagnosedRanges: MutableList<DiagnosedRange> = ArrayList()
-        val clearText = CheckerTestUtil.parseDiagnosedRanges(expectedText, diagnosedRanges)
+    protected fun check(
+        expectedText: String,
+        commonText: String? = null,
+        ignoreParseErrors: Boolean = false
+    ) {
+        val clearText = CheckerTestUtil.parseDiagnosedRanges(expectedText, mutableListOf())
+        val clearCommonText = commonText?.let {
+            CheckerTestUtil.parseDiagnosedRanges(commonText, mutableListOf())
+        }
 
         val errors = analyze(
-            listOf(SourceFile("test.kt", clearText, ignoreParseErrors))
+            listOf(SourceFile("test.kt", clearText, ignoreParseErrors)),
+            listOfNotNull(clearCommonText?.let { SourceFile("common.kt", it, ignoreParseErrors) }),
         ).diagnostics
 
-        val rangeToDiagnostics = errors.flatGroupBy { it.textRanges }.mapValues { entry ->
+        checkDiagnostics(expectedText, clearText, errors["test.kt"])
+        if (clearCommonText != null) {
+            checkDiagnostics(commonText, clearCommonText, errors["common.kt"])
+        }
+    }
+
+    private fun checkDiagnostics(
+        expectedText: String,
+        clearText: String,
+        diagnostics: List<AnalysisResult.Diagnostic>?
+    ) {
+        assertEquals(
+            expectedText,
+            if (diagnostics == null) clearText else annotateDiagnostics(clearText, diagnostics)
+        )
+    }
+
+    private fun annotateDiagnostics(
+        clearText: String,
+        diagnostics: List<AnalysisResult.Diagnostic>
+    ): String {
+        val rangeToDiagnostics = diagnostics.flatGroupBy { it.textRanges }.mapValues { entry ->
             entry.value.map { it.factoryName }.toSet()
         }
         val startOffsetToGroups = rangeToDiagnostics.entries.groupBy(
@@ -43,22 +71,19 @@ abstract class AbstractComposeDiagnosticsTest(useFir: Boolean) : AbstractCompile
             keySelector = { it.key.endOffset },
             valueTransform = { it.value }
         )
-
-        val annotatedText = buildString {
+        return buildString {
             for ((i,c) in clearText.withIndex()) {
                 endOffsetsToGroups[i]?.let { groups ->
                     repeat(groups.size) { append("<!>") }
                 }
                 startOffsetToGroups[i]?.let { groups ->
-                    for (diagnostics in groups) {
-                        append("<!${diagnostics.joinToString(",")}!>")
+                    for (localDiagnostics in groups) {
+                        append("<!${localDiagnostics.joinToString(",")}!>")
                     }
                 }
                 append(c)
             }
         }
-
-        assertEquals(expectedText, annotatedText)
     }
 
     protected fun checkFail(expectedText: String) {
